@@ -22,7 +22,12 @@ def echo(request):
 @csrf_exempt
 def lave(request):
 	aux = {}
-	data = request.read()
+	enc = request.GET.get('enc', False)
+	if enc:
+		from base64 import b64decode
+		data = b64decode(enc)
+	else:
+		data = request.read()
 	# import tempfile
 	# fp = tempfile.TemporaryFile()
 	# fp.write(data)
