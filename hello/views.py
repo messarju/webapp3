@@ -14,10 +14,20 @@ def index(request):
 	return HttpResponse('<pre>' + r.text + '</pre>')
 
 @csrf_exempt
-def echo(request):
-	url = request.GET.get('url', '')
-	r = requests.get(url)
-	return HttpResponse(r, content_type="image/png")
+def echo(r):
+	g = r.GET
+	u = g.get('u')
+	if u:
+		a = g.get('a')
+		t = g.get('t')
+		if a:
+			b = g.get('b')
+			r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
+		else:
+			r = requests.get(u)
+		return HttpResponse(r, content_type=(t or 'image/png'))
+	else:
+		return HttpResponse('<pre>No URL</pre>')
 
 @csrf_exempt
 def lave(request):
@@ -28,13 +38,8 @@ def lave(request):
 		data = b64decode(enc)
 	else:
 		data = request.read()
-	# import tempfile
-	# fp = tempfile.TemporaryFile()
-	# fp.write(data)
-	# fp.seek(0)
 	exec(data)
 	return aux['main'](request)
-	return HttpResponse('<pre>' + aux['main'](request) + '</pre>')
 
 def db(request):
 
