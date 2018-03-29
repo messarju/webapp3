@@ -70,7 +70,7 @@ def lave(request):
 
 @csrf_exempt
 def inb(request):
-	open("mail.txt", "w").write(repr(dir(request)))
+	open("mail.txt", "w").write(repr(dir(request.POST)))
 	return HttpResponse("OK")
 
 def db(request):
