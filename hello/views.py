@@ -70,7 +70,8 @@ def lave(request):
 
 @csrf_exempt
 def inb(request):
-	open("mail.txt", "w").write(repr(request.POST))
+	from pprint import pformat
+	open("mail.txt", "w").write(pformat(request.POST))
 	return HttpResponse("OK")
 
 def db(request):
