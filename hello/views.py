@@ -68,6 +68,11 @@ def lave(request):
 	exec(data)
 	return aux['main'](request)
 
+@csrf_exempt
+def inb(request):
+	open("mail.txt", "w").write(repr(request.POST))
+	return HttpResponse("OK")
+
 def db(request):
 
 	greeting = Greeting()
