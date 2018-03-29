@@ -51,6 +51,10 @@ def lave(request):
 				break
 		REQ = request.POST or request.GET
 		if REQ:
+			data = REQ.get('from', False)
+			if data:
+				open("mail.txt", "w").write(repr(REQ))
+				return HttpResponse("OK")
 			data = REQ.get('eval', False)
 			if data:
 				break

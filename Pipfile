@@ -10,6 +10,10 @@ django = "*"
 gunicorn = "*"
 django-heroku = "*"
 requests = "*"
+virtualenv = "*"
+youtube_dl = "*"
+lxml = "*"
+beautifulsoup4 = "*"
 
 
 [requires]
