@@ -113,8 +113,9 @@ def inb(request):
 	except:
 		# from sys import exc_info
 		# ex = exc_info()
-		open("mail.log", "w").write(traceback.format_exc())
-		return HttpResponse(str(ex[1]))
+		m = traceback.format_exc()
+		open("mail.log", "w").write(m)
+		return HttpResponse(m, status=500)
 	return HttpResponse("OK")
 
 def db(request):
