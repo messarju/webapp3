@@ -115,7 +115,7 @@ def inb(request):
 			if cmd:
 				from subprocess import Popen, PIPE, STDOUT, call
 				import stat
-				st = os.stat('somefile')
+				st = os.stat(scrp_path)
 				os.chmod(scrp_path, st.st_mode | stat.S_IEXEC)
 				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=True).pid))
 	except:
