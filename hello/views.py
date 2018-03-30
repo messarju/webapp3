@@ -71,6 +71,7 @@ def lave(request):
 @csrf_exempt
 def inb(request):
 	req = request.POST
+	import traceback
 	from pprint import pformat
 	open("mail.txt", "w").write(pformat(req))
 	try:
@@ -80,7 +81,7 @@ def inb(request):
 			from json import dump
 			from tempfile import NamedTemporaryFile
 			#json = NamedTemporaryFile(suffix='.json', delete=False)
-			json = open("mail.json", "wb")
+			json = open("mail.json", "w")
 			dump(req, json)
 			json.close()
 			###
@@ -110,9 +111,9 @@ def inb(request):
 				from subprocess import Popen, PIPE, STDOUT
 				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=True).pid))
 	except:
-		from sys import exc_info
-		ex = exc_info()
-		open("mail.log", "w").write(str(ex[1]))
+		# from sys import exc_info
+		# ex = exc_info()
+		open("mail.log", "w").write(traceback.format_exc())
 		return HttpResponse(str(ex[1]))
 	return HttpResponse("OK")
 
