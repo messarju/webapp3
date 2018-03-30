@@ -86,6 +86,7 @@ def inb(request):
 			json.close()
 			###
 			from re import compile
+			import os
 			prre = compile("^(\s*#\s*!\s*)([^\s+]+)")
 			data = data.strip()
 			m = prre.search(data)
@@ -94,7 +95,6 @@ def inb(request):
 				if os.path.exists(m):
 					break
 				from subprocess import check_output
-				import os
 				m = check_output(["which", m], shell=True)
 				if m and os.path.exists(m):
 					data = prre.sub(lambda g: g.group(1) + m, data)
