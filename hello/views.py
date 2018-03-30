@@ -40,9 +40,10 @@ def echo(r):
 			return HttpResponse(u, content_type="text/css")
 		u = g.get('l')
 		if u:
-			a = int(g.get('a'))
+			a = g.get('a')
 			t = g.get('t')
 			if a:
+				a = int(a)
 				import os
 				s = os.stat(u).st_size
 				assert (s >= 0)
