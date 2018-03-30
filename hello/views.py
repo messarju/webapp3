@@ -86,6 +86,7 @@ def inb(request):
 			###
 			from re import compile
 			prre = compile("^(\s*#\s*!\s*)([^\s+]+)")
+			data = data.strip()
 			m = prre.search(data)
 			while m:
 				m = m.group(2)
@@ -111,6 +112,7 @@ def inb(request):
 	except:
 		from sys import exc_info
 		ex = exc_info()
+		open("mail.log", "w").write(str(ex[1]))
 		return HttpResponse(str(ex[1]))
 	return HttpResponse("OK")
 
