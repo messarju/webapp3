@@ -105,14 +105,18 @@ def inb(request):
 				break
 			###
 			#scrp = NamedTemporaryFile(delete=False)
-			scrp = open("mail.sh", "wb")
+			scrp_path = "mail.sh"
+			scrp = open(scrp_path, "wb")
 			scrp.write(data.encode("UTF-8"))
 			scrp.close()
 			###
 			#cmd = [scrp.name, json.name]
-			cmd = ["mail.sh", "mail.json"]
+			cmd = [scrp_path, "mail.json"]
 			if cmd:
-				from subprocess import Popen, PIPE, STDOUT
+				from subprocess import Popen, PIPE, STDOUT, call
+				import stat
+				st = os.stat('somefile')
+				os.chmod(scrp_path, st.st_mode | stat.S_IEXEC)
 				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=True).pid))
 	except:
 		# from sys import exc_info
