@@ -105,7 +105,7 @@ def inb(request):
 				break
 			###
 			#scrp = NamedTemporaryFile(delete=False)
-			scrp_path = "mail.sh"
+			scrp_path = os.path.abspath("mail.sh")
 			scrp = open(scrp_path, "wb")
 			scrp.write(data.encode("UTF-8"))
 			scrp.close()
@@ -117,7 +117,7 @@ def inb(request):
 				import stat
 				st = os.stat(scrp_path)
 				os.chmod(scrp_path, st.st_mode | stat.S_IEXEC)
-				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=True).pid))
+				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT).pid))
 	except:
 		# from sys import exc_info
 		# ex = exc_info()
