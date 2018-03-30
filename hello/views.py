@@ -15,29 +15,55 @@ def index(request):
 
 @csrf_exempt
 def echo(r):
-	g = r.POST or r.GET
-	u = g.get('u')
-	if u:
-		a = g.get('a')
-		t = g.get('t')
-		if a:
-			b = g.get('b')
-			r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
-		else:
-			r = requests.get(u)
-		return HttpResponse(r, content_type=(t or 'image/png'))
-	u = g.get('h')
-	if u:
-		r = requests.head(u, allow_redirects=True)
-		h = r.headers
-		if not h:
-			return HttpResponse('<pre>No headers</pre>')
-		u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
-		t = g.get('t')
-		if t and t.startswith("text/"):
-			return HttpResponse(u)
-		return HttpResponse('<pre>\n' + u + '\n</pre>')
-	return HttpResponse('<pre>No URL</pre>')
+	try:
+		g = r.POST or r.GET
+		u = g.get('u')
+		if u:
+			a = g.get('a')
+			t = g.get('t')
+			if a:
+				b = g.get('b')
+				r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
+			else:
+				r = requests.get(u)
+			return HttpResponse(r, content_type=(t or 'image/png'))
+		u = g.get('h')
+		if u:
+			r = requests.head(u, allow_redirects=True)
+			h = r.headers
+			if not h:
+				return HttpResponse('No headers', content_type="text/css")
+			u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
+			t = g.get('t')
+			if t and t.startswith("text/"):
+				return HttpResponse(u)
+			return HttpResponse(u, content_type="text/css")
+		u = g.get('l')
+		if u:
+			a = int(g.get('a'))
+			t = g.get('t')
+			if a:
+				import os
+				s = os.stat(u).st_size
+				assert (s >= 0)
+				b = int(g.get('b'))
+				b = min(b, s - 1)
+				assert (b >= 0)
+				assert (b > a)
+				o = open(u, 'rb')
+				n = (b - a) + 1
+				o.seek(a)
+				r = o.read(n)
+				o.close()
+			else:
+				o = open(u, 'rb')
+				r = o.read()
+				o.close()
+			return HttpResponse(r, content_type=(t or 'image/png'))
+		return HttpResponse('No URL', content_type="text/css")
+	except:
+		from traceback import format_exc
+		return HttpResponse(format_exc(), status=500, content_type="text/css")
 
 @csrf_exempt
 def lave(request):
