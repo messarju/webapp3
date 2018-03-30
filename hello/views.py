@@ -70,8 +70,45 @@ def lave(request):
 
 @csrf_exempt
 def inb(request):
+	req = request.POST
+	try:
+		data = req.get("plain")
+		if data:
+			###
+			from json import dump
+			from tempfile import NamedTemporaryFile
+			json = NamedTemporaryFile(suffix='.json', delete=False)
+			dump(req, json)
+			json.close()
+			###
+			from re import compile
+			prre = compile("^(\s*#\s*!\s*)([^\s+]+)")
+			m = prre.search(data)
+			while m:
+				m = m.group(2)
+				if os.path.exists(m):
+					break
+				from subprocess import check_output
+				import os
+				m = check_output(["which", m], shell=True)
+				if m and os.path.exists(m):
+					data = prre.sub(lambda g: g.group(1) + m, data)
+				break
+			###
+			scrp = NamedTemporaryFile(delete=False)
+			scrp.write(data.encode("UTF-8"))
+			scrp.close()
+			###
+			cmd = [scrp.name, json.name]
+			if cmd:
+				from subprocess import Popen, PIPE, STDOUT
+				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT, shell=True).pid))
+	except:
+		from sys import exc_info
+		ex = exc_info()
+		return HttpResponse(str(ex[1]))
 	from pprint import pformat
-	open("mail.txt", "w").write(pformat(request.POST))
+	open("mail.txt", "w").write(pformat(req))
 	return HttpResponse("OK")
 
 def db(request):

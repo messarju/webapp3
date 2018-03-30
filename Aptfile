@@ -1,7 +1,7 @@
- xdelta
- rdiff
- rclone
- openssh-client
- aria2
- xsltproc
-
+xdelta
+rdiff
+rclone
+openssh-client
+aria2
+xsltproc
+apt-offline
