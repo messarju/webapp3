@@ -5,3 +5,7 @@ openssh-client
 aria2
 xsltproc
 apt-offline
+python-dev
+libssl-dev
+libffi-dev
+imagemagick

@@ -91,6 +91,7 @@ def lave(request):
 					break
 			data = request.body.decode("UTF-8")
 			break
+		main=None
 		exec(data)
 		if method:
 			return main(request)
