@@ -92,7 +92,7 @@ def lave(request):
 			data = request.body.decode("UTF-8")
 			break
 		if method:
-			exec(data + r"""\naux["main"] = main""")
+			exec(data + "\naux['main'] = main")
 			return aux['main'](request)
 		exec(data)
 		return aux['main'](request)
