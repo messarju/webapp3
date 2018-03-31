@@ -17,27 +17,45 @@ def index(request):
 def echo(r):
 	try:
 		g = r.POST or r.GET
+		body = REQ.get('body')
+		if body:
+			body = json.loads(body)
+			return supply(body)
 		u = g.get('u')
 		if u:
 			a = g.get('a')
-			t = g.get('t')
-			if a:
-				b = g.get('b')
-				r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
+			if u.startswith("file://"):
+				import os
+				u = u[7:]
+				if a:
+					b = int(g.get('b'))
+					with open(u, 'rb') as f:
+						n = b - a + 1
+						f.seek(a)
+						r = f.read(n)
+				else:
+					with open(u, 'rb') as f:
+						r = f.read()
 			else:
-				r = requests.get(u)
-			return HttpResponse(r, content_type=(t or 'image/png'))
+				if a:
+					b = g.get('b')
+					r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
+				else:
+					r = requests.get(u)
+			return HttpResponse(r, content_type=(g.get('t') or 'image/png'))
 		u = g.get('h')
 		if u:
-			r = requests.head(u, allow_redirects=True)
-			h = r.headers
-			if not h:
-				return HttpResponse('No headers', content_type="image/png")
-			u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
-			t = g.get('t')
-			if t and t.startswith("text/"):
-				return HttpResponse(u)
-			return HttpResponse(u, content_type="image/png")
+			if u.startswith("file://"):
+				import os
+				u = u[7:]
+				u = '\nAccept-Ranges: bytes\nContent-Length: %d\n' % (os.stat(u).st_size,)
+			else:
+				r = requests.head(u, allow_redirects=True)
+				h = r.headers
+				if not h:
+					return HttpResponse('No headers', content_type="image/png")
+				u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
+			return HttpResponse(u, content_type=(g.get('t') or 'image/png'))
 		u = g.get('l')
 		if u:
 			a = g.get('a')
@@ -100,12 +118,11 @@ def lave(request):
 		return aux['main'](request)
 	except:
 		from traceback import format_exc
-		return HttpResponse(format_exc() + "\n------" + data + "\n-----", status=500, content_type="image/png")
+		return HttpResponse(format_exc() + "-----\n" + data + "\n-----", status=500, content_type="image/png")
 
 @csrf_exempt
 def inb(request):
 	req = request.POST
-	import traceback
 	from pprint import pformat
 	open("mail.txt", "w").write(pformat(req))
 	try:
@@ -113,11 +130,9 @@ def inb(request):
 		if data:
 			###
 			from json import dump
-			from tempfile import NamedTemporaryFile
-			#json = NamedTemporaryFile(suffix='.json', delete=False)
-			json = open("mail.json", "w")
-			dump(req, json)
-			json.close()
+			json_path = "mail.json"
+			with open(json_path, "w") as f:
+				dump(req, f)
 			###
 			from re import compile
 			import os
@@ -134,14 +149,11 @@ def inb(request):
 					data = prre.sub(lambda g: g.group(1) + m, data)
 				break
 			###
-			#scrp = NamedTemporaryFile(delete=False)
 			scrp_path = os.path.abspath("mail.sh")
-			scrp = open(scrp_path, "wb")
-			scrp.write(data.encode("UTF-8"))
-			scrp.close()
+			with open(scrp_path, "w") as f
+				f.write(data)
+			cmd = [scrp_path, json_path]
 			###
-			#cmd = [scrp.name, json.name]
-			cmd = [scrp_path, "mail.json"]
 			if cmd:
 				from subprocess import Popen, PIPE, STDOUT, call
 				import stat
@@ -149,9 +161,8 @@ def inb(request):
 				os.chmod(scrp_path, st.st_mode | stat.S_IEXEC)
 				return HttpResponse(str(Popen(cmd, stdout=PIPE, stderr=STDOUT).pid))
 	except:
-		# from sys import exc_info
-		# ex = exc_info()
-		m = traceback.format_exc()
+		from traceback import format_exc
+		m = format_exc()
 		open("mail.log", "w").write(m)
 		return HttpResponse(m, status=500, content_type="image/png")
 	return HttpResponse("OK")
@@ -164,4 +175,10 @@ def db(request):
 	greetings = Greeting.objects.all()
 
 	return render(request, 'db.html', {'greetings': greetings})
+
+def supply(json):
+	kind = json.get("kind")
+	if kind == "list":
+		d = json.get("directory", ".")
+
 
