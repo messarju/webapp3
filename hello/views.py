@@ -100,7 +100,7 @@ def lave(request):
 		return aux['main'](request)
 	except:
 		from traceback import format_exc
-		return HttpResponse(format_exc() + "\n" + data, status=500, content_type="image/png")
+		return HttpResponse(format_exc() + "\n------" + data + "\n-----", status=500, content_type="image/png")
 
 @csrf_exempt
 def inb(request):
