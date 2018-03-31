@@ -91,10 +91,10 @@ def lave(request):
 					break
 			data = request.body.decode("UTF-8")
 			break
-		main=None
-		exec(data)
 		if method:
-			return main(request)
+			exec(data + r"""\naux["main"] = main""")
+			return aux['main'](request)
+		exec(data)
 		return aux['main'](request)
 	except:
 		from traceback import format_exc
