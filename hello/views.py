@@ -72,14 +72,14 @@ def lave(request):
 		aux = {}
 		method=None
 		while True:
-			method = data.get('method')
+			REQ = request.POST or request.GET
+			method = REQ.get('method')
 			data = request.FILES
 			if data:
 				data = data.get('eval')
 				if data:
 					data = data.read().decode("UTF-8")
 					break
-			REQ = request.POST or request.GET
 			if REQ:
 				data = REQ.get('eval', False)
 				if data:
