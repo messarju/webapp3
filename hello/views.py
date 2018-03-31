@@ -150,7 +150,7 @@ def inb(request):
 				break
 			###
 			scrp_path = os.path.abspath("mail.sh")
-			with open(scrp_path, "w") as f
+			with open(scrp_path, "w") as f:
 				f.write(data)
 			cmd = [scrp_path, json_path]
 			###
