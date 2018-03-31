@@ -92,8 +92,9 @@ def lave(request):
 			data = request.body.decode("UTF-8")
 			break
 		if method:
-			exec(data + "\naux['main'] = main")
-			return aux['main'](request)
+			aux['request'] = request
+			exec(data + "\naux['result'] = main(aux['request'])")
+			return aux['result']
 		exec(data)
 		return aux['main'](request)
 	except:
