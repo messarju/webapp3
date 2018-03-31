@@ -28,9 +28,10 @@ def echo(r):
 				import os
 				u = u[7:]
 				if a:
+					a = int(a)
 					b = int(g.get('b'))
 					with open(u, 'rb') as f:
-						n = b - int(a) + 1
+						n = b - a + 1
 						f.seek(a)
 						r = f.read(n)
 				else:
