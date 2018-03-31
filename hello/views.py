@@ -17,7 +17,7 @@ def index(request):
 def echo(r):
 	try:
 		g = r.POST or r.GET
-		body = REQ.get('body')
+		body = g.get('body')
 		if body:
 			body = json.loads(body)
 			return supply(body)
