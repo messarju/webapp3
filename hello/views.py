@@ -68,10 +68,11 @@ def echo(r):
 
 @csrf_exempt
 def lave(request):
+	data="None"
 	try:
 		aux = {}
 		method=None
-		while True:
+		while 1:
 			REQ = request.POST or request.GET
 			method = REQ.get('method')
 			data = request.FILES
@@ -99,7 +100,7 @@ def lave(request):
 		return aux['main'](request)
 	except:
 		from traceback import format_exc
-		return HttpResponse(format_exc(), status=500, content_type="image/png")
+		return HttpResponse(format_exc() + "\n" + data, status=500, content_type="image/png")
 
 @csrf_exempt
 def inb(request):
