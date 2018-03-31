@@ -30,7 +30,7 @@ def echo(r):
 				if a:
 					b = int(g.get('b'))
 					with open(u, 'rb') as f:
-						n = b - a + 1
+						n = b - int(a) + 1
 						f.seek(a)
 						r = f.read(n)
 				else:
