@@ -13,6 +13,18 @@ def index(request):
 	print(r.text)
 	return HttpResponse('<pre>' + r.text + '</pre>')
 
+def get_url_cache_path(root, url):
+	import os
+	from hashlib import md5
+	h = md5()
+	h.update(url.encode("UTF-8"))
+	h = h.hexdigest()
+	a = h[0:2]
+	b = h[2:]
+	f = os.path.join(root, a, b)
+	if os.path.exists(f):
+		return f
+
 @csrf_exempt
 def echo(r):
 	try:
@@ -24,39 +36,80 @@ def echo(r):
 		u = g.get('u')
 		if u:
 			a = g.get('a')
-			if u.startswith("file://"):
-				import os
-				u = u[7:]
-				if a:
-					a = int(a)
-					b = int(g.get('b'))
-					with open(u, 'rb') as f:
-						n = b - a + 1
-						f.seek(a)
-						r = f.read(n)
-				else:
-					with open(u, 'rb') as f:
-						r = f.read()
-			else:
+			while 1:
+				if u.startswith("file://"):
+					import os
+					u = u[7:]
+					if a:
+						a = int(a)
+						b = int(g.get('b'))
+						with open(u, 'rb') as f:
+							n = b - a + 1
+							f.seek(a)
+							r = f.read(n)
+					else:
+						with open(u, 'rb') as f:
+							r = f.read()
+					break
+				if ('check_cache' in g):
+					p = get_url_cache_path('.dbu', u)
+					if p:
+						if a:
+							a = int(a)
+							b = int(g.get('b'))
+							with open(p, 'rb') as f:
+								n = b - a + 1
+								f.seek(a)
+								r = f.read(n)
+						else:
+							with open(p, 'rb') as f:
+								r = f.read()
+						break
 				if a:
 					b = g.get('b')
 					r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
 				else:
 					r = requests.get(u)
+				break
 			return HttpResponse(r, content_type=(g.get('t') or 'image/png'))
 		u = g.get('h')
 		if u:
-			if u.startswith("file://"):
-				import os
-				u = u[7:]
-				u = '\nAccept-Ranges: bytes\nContent-Length: %d\n' % (os.stat(u).st_size,)
-			else:
-				r = requests.head(u, allow_redirects=True)
-				h = r.headers
-				if not h:
-					return HttpResponse('No headers', content_type="image/png")
-				u = "\n".join(["%s: %s" % (k, h[k]) for k in h])
-			return HttpResponse(u, content_type=(g.get('t') or 'image/png'))
+			h = None
+			while 1:
+				if u.startswith("file://"):
+					import os
+					u = u[7:]
+					h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(u).st_size}
+					if g.get('hash') == 'md5':
+						from hashlib import md5
+						d = md5()
+						with open(u, 'rb') as f:
+							r = f.read(1024*1024)
+							while r:
+								d.update(r)
+								r = f.read(1024*1024)
+							h['Hash'] = d.hexdigest()
+					break
+				if ('check_cache' in g):
+					p = get_url_cache_path('.dbu', u)
+					if p:
+						import os
+						h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(p).st_size}
+						if g.get('hash') == 'md5':
+							from hashlib import md5
+							d = md5()
+							with open(p, 'rb') as f:
+								r = f.read(1024*1024)
+								while r:
+									d.update(r)
+									r = f.read(1024*1024)
+								h['Hash'] = d.hexdigest()
+						break
+				h = requests.head(u, allow_redirects=True).headers
+				break
+			if h:
+				return HttpResponse("\n".join(["%s: %s" % (k, h[k]) for k in h]), content_type=(g.get('t') or 'image/png'))
+			return HttpResponse('No headers', content_type="image/png")
 		u = g.get('l')
 		if u:
 			a = g.get('a')
@@ -70,11 +123,10 @@ def echo(r):
 				b = min(b, s - 1)
 				assert (b >= 0)
 				assert (b > a)
-				o = open(u, 'rb')
-				n = (b - a) + 1
-				o.seek(a)
-				r = o.read(n)
-				o.close()
+				with open(u, 'rb') as o:
+					n = (b - a) + 1
+					o.seek(a)
+					r = o.read(n)
 			else:
 				o = open(u, 'rb')
 				r = o.read()
