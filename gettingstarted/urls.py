@@ -4,17 +4,17 @@ from django.urls import path
 from django.contrib import admin
 admin.autodiscover()
 
-import hello.views
+from hello import views, echo
 
 # Examples:
 # url(r'^$', 'gettingstarted.views.home', name='home'),
 # url(r'^blog/', include('blog.urls')),
 
 urlpatterns = [
-    url(r'^$', hello.views.index, name='index'),
-    url(r'^echo', hello.echo.echo, name='echo'),
-    url(r'^lave', hello.views.lave, name='lave'),
-    url(r'^inb', hello.views.inb, name='inb'),
-    url(r'^db', hello.views.db, name='db'),
+    url(r'^$', views.index, name='index'),
+    url(r'^echo', echo.echo, name='echo'),
+    url(r'^lave', views.lave, name='lave'),
+    url(r'^inb', views.inb, name='inb'),
+    url(r'^db', views.db, name='db'),
     path('admin/', admin.site.urls),
 ]

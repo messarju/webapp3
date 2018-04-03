@@ -25,6 +25,7 @@ def _add_hash(f, n, h):
 @csrf_exempt
 def echo(r):
 	try:
+		import requests
 		g = r.POST or r.GET
 		body = g.get('body')
 		if body:
