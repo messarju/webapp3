@@ -1,6 +1,27 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+
+def _readb(f, w):
+	with open(u, 'rb') as f:
+		if w:
+			n = w[1] - w[0] + 1
+			f.seek(w[0])
+			return f.read(n)
+		else:
+			return f.read()
+
+def _add_hash(f, n, h):
+	if n == 'md5':
+		from hashlib import md5
+		d = md5()
+		with open(f, 'rb') as f:
+			r = f.read(1024*1024)
+			while r:
+				d.update(r)
+				r = f.read(1024*1024)
+			h['Hash'] = d.hexdigest()
+
 @csrf_exempt
 def echo(r):
 	try:
@@ -16,31 +37,17 @@ def echo(r):
 				if u.startswith("file://"):
 					import os
 					u = u[7:]
-					if a:
-						a = int(a)
-						b = int(g.get('b'))
-						with open(u, 'rb') as f:
-							n = b - a + 1
-							f.seek(a)
-							r = f.read(n)
-					else:
-						with open(u, 'rb') as f:
-							r = f.read()
+					r = _readb(u, a and [int(a), int(g.get('b'))])
 					break
-				if ('check_cache' in g):
-					p = get_url_cache_path('.dbu', u)
-					if p:
-						if a:
-							a = int(a)
-							b = int(g.get('b'))
-							with open(p, 'rb') as f:
-								n = b - a + 1
-								f.seek(a)
-								r = f.read(n)
-						else:
-							with open(p, 'rb') as f:
-								r = f.read()
+				cache = g.get('cache')
+				if cache in ('check', 'use'):
+					from . import dbu
+					p = dbu.Download().urlPath(u)
+					import os
+					if os.path.exists(p):
+						r = _readb(p, a and [int(a), int(g.get('b'))])
 						break
+					return HttpResponse("Not found %r" % p, content_type='image/png', status_code=404)
 				if a:
 					b = g.get('b')
 					r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
@@ -56,30 +63,16 @@ def echo(r):
 					import os
 					u = u[7:]
 					h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(u).st_size}
-					if g.get('hash') == 'md5':
-						from hashlib import md5
-						d = md5()
-						with open(u, 'rb') as f:
-							r = f.read(1024*1024)
-							while r:
-								d.update(r)
-								r = f.read(1024*1024)
-							h['Hash'] = d.hexdigest()
+					_ = g.get('hash')
+					_ and _add_hash(u, _, h)
 					break
 				if ('check_cache' in g):
 					p = get_url_cache_path('.dbu', u)
 					if p:
 						import os
 						h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(p).st_size}
-						if g.get('hash') == 'md5':
-							from hashlib import md5
-							d = md5()
-							with open(p, 'rb') as f:
-								r = f.read(1024*1024)
-								while r:
-									d.update(r)
-									r = f.read(1024*1024)
-								h['Hash'] = d.hexdigest()
+						_ = g.get('hash')
+						_ and _add_hash(p, _, h)
 						break
 				h = requests.head(u, allow_redirects=True).headers
 				break
