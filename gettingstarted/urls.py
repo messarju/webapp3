@@ -12,7 +12,7 @@ import hello.views
 
 urlpatterns = [
     url(r'^$', hello.views.index, name='index'),
-    url(r'^echo', hello.views.echo, name='echo'),
+    url(r'^echo', hello.echo.echo, name='echo'),
     url(r'^lave', hello.views.lave, name='lave'),
     url(r'^inb', hello.views.inb, name='inb'),
     url(r'^db', hello.views.db, name='db'),
