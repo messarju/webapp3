@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-
 def _readb(f, w):
 	with open(u, 'rb') as f:
 		if w:
@@ -48,7 +47,8 @@ def echo(r):
 					if os.path.exists(p):
 						r = _readb(p, a and [int(a), int(g.get('b'))])
 						break
-					return HttpResponse("Not found %r" % p, content_type='image/png', status_code=404)
+					if cache == 'use':
+						return HttpResponse("Not found %r" % p, content_type='image/png', status_code=404)
 				if a:
 					b = g.get('b')
 					r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
@@ -67,14 +67,19 @@ def echo(r):
 					_ = g.get('hash')
 					_ and _add_hash(u, _, h)
 					break
-				if ('check_cache' in g):
-					p = get_url_cache_path('.dbu', u)
-					if p:
+				cache = g.get('cache')
+				if cache in ('check', 'use'):
+					from . import dbu
+					p = dbu.Download().urlPath(u)
+					import os
+					if os.path.exists(p):
 						import os
 						h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(p).st_size}
 						_ = g.get('hash')
 						_ and _add_hash(p, _, h)
 						break
+					if cache == 'use':
+						return HttpResponse("Not found %r" % p, content_type='image/png', status_code=404)
 				h = requests.head(u, allow_redirects=True).headers
 				break
 			if h:
@@ -106,6 +111,3 @@ def echo(r):
 	except:
 		from traceback import format_exc
 		return HttpResponse(format_exc(), status=500, content_type="image/png")
-
-
-
