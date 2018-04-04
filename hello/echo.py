@@ -21,10 +21,13 @@ def _add_hash(f, n, h):
 				r = f.read(1024*1024)
 			h['Hash'] = d.hexdigest()
 
+def E404(x):
+	return HttpResponse("Not found %r" % x, content_type='image/png', status=404)
+
 @csrf_exempt
 def echo(r):
 	try:
-		import requests
+		import requests, os
 		g = r.POST or r.GET
 		body = g.get('body')
 		if body:
@@ -33,39 +36,40 @@ def echo(r):
 		u = g.get('u')
 		if u:
 			a = g.get('a')
-			while 1:
-				if u.startswith("file://"):
-					import os
-					u = u[7:]
-					r = _readb(u, a and [int(a), int(g.get('b'))])
-					break
-				cache = g.get('cache')
-				if cache in ('check', 'use'):
-					from . import dbu
-					p = dbu.Download().urlPath(u)
-					import os
-					if os.path.exists(p):
-						r = _readb(p, a and [int(a), int(g.get('b'))])
-						break
-					if cache == 'use':
-						return HttpResponse("Not found %r" % p, content_type='image/png', status_code=404)
-				if a:
-					b = g.get('b')
-					r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
+			if u.startswith("file://"):
+				p = u[7:]
+				if os.path.exists(p):
+					_ = _readb(p, a and [int(a), int(g.get('b'))])
+					return HttpResponse(_, content_type=g.get('t', 'image/png'))
 				else:
-					r = requests.get(u)
-				break
-			return HttpResponse(r, content_type=(g.get('t') or 'image/png'))
+					return E404(p)
+			cache = g.get('cache')
+			if cache in ('check', 'use'):
+				from . import dbu
+				p = dbu.Download().urlPath(u)
+				if os.path.exists(p):
+					_ = _readb(p, a and [int(a), int(g.get('b'))])
+					return HttpResponse(_, content_type=g.get('t', 'image/png'))
+				elif cache == 'use':
+					return E404(p)
+			if a:
+				b = g.get('b')
+				r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
+			else:
+				r = requests.get(u)
+			break
+			return HttpResponse(r, content_type=g.get('t', 'image/png'), status=r.status_code)
 		u = g.get('h')
 		if u:
 			h = None
 			while 1:
 				if u.startswith("file://"):
-					import os
-					u = u[7:]
-					h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(u).st_size}
+					p = u[7:]
+					if not os.path.exists(p):
+						return E404(p)
+					h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(p).st_size}
 					_ = g.get('hash')
-					_ and _add_hash(u, _, h)
+					_ and _add_hash(p, _, h)
 					break
 				cache = g.get('cache')
 				if cache in ('check', 'use'):
@@ -78,36 +82,35 @@ def echo(r):
 						_ = g.get('hash')
 						_ and _add_hash(p, _, h)
 						break
-					if cache == 'use':
-						return HttpResponse("Not found %r" % p, content_type='image/png', status_code=404)
+					elif cache == 'use':
+						return E404(p)
 				h = requests.head(u, allow_redirects=True).headers
 				break
 			if h:
-				return HttpResponse("\n".join(["%s: %s" % (k, h[k]) for k in h]), content_type=(g.get('t') or 'image/png'))
+				return HttpResponse("\n".join(["%s: %s" % (k, h[k]) for k in h]), content_type=g.get('t', 'image/png'), status=r.status_code)
 			return HttpResponse('No headers', content_type="image/png")
-		u = g.get('l')
-		if u:
-			a = g.get('a')
-			t = g.get('t')
-			if a:
-				a = int(a)
-				import os
-				s = os.stat(u).st_size
-				assert (s >= 0)
-				b = int(g.get('b'))
-				b = min(b, s - 1)
-				assert (b >= 0)
-				assert (b > a)
-				with open(u, 'rb') as o:
-					n = (b - a) + 1
-					o.seek(a)
-					r = o.read(n)
+		p = g.get('l')
+		if p:
+			if os.path.exists(p):
+				a = g.get('a')
+				_ = _readb(p, a and [int(a), int(g.get('b'))])
+				return HttpResponse(_, content_type=g.get('t', 'image/png'))
 			else:
-				o = open(u, 'rb')
-				r = o.read()
-				o.close()
-			return HttpResponse(r, content_type=(t or 'image/png'))
-		return HttpResponse('No URL', content_type="image/png")
+				return E404(p)
+		sub = g.get('_')
+		if not sub:
+			pass
+		elif sub == 'cache_urls':
+			v = r.FILES
+			if v:
+				v = v.get('urls')
+				if v:
+					from . import dbu
+					dlr = dbu.Download()
+					for l in v:
+					    dlr.fetch(l.strip())
+			return HttpResponse('OK', content_type="image/png")
+		return HttpResponse('No URL', content_type="image/png", status=400)
 	except:
 		from traceback import format_exc
 		return HttpResponse(format_exc(), status=500, content_type="image/png")

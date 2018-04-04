@@ -16,7 +16,7 @@ lxml = "*"
 beautifulsoup4 = "*"
 celery = "*"
 rq = "*"
-
+tornado = "*"
 
 [requires]
 
