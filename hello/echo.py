@@ -49,6 +49,7 @@ def echo(r):
 				p = dbu.Download().urlPath(u)
 				if os.path.exists(p):
 					_ = _readb(p, a and [int(a), int(g.get('b'))])
+					open('cache.log', 'a').write("HIT %s %s\n" % (p, a))
 					return HttpResponse(_, content_type=g.get('t', 'image/png'))
 				elif cache == 'use':
 					return E404(p)
@@ -75,12 +76,12 @@ def echo(r):
 				if cache in ('check', 'use'):
 					from . import dbu
 					p = dbu.Download().urlPath(u)
-					import os
 					if os.path.exists(p):
 						import os
 						h = {'Accept-Ranges': 'bytes', 'Content-Length' : os.stat(p).st_size}
 						_ = g.get('hash')
 						_ and _add_hash(p, _, h)
+						open('cache.log', 'a').write("HED %s %s\n" % (p, h['Content-Length']))
 						break
 					elif cache == 'use':
 						return E404(p)
