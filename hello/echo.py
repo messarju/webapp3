@@ -58,7 +58,6 @@ def echo(r):
 				r = requests.get(u, headers={'Range': 'bytes=%s-%s' % (a, b)})
 			else:
 				r = requests.get(u)
-			break
 			return HttpResponse(r, content_type=g.get('t', 'image/png'), status=r.status_code)
 		u = g.get('h')
 		if u:
