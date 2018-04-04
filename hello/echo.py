@@ -1,8 +1,8 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-def _readb(f, w):
-	with open(u, 'rb') as f:
+def _readb(p, w):
+	with open(p, 'rb') as f:
 		if w:
 			n = w[1] - w[0] + 1
 			f.seek(w[0])
