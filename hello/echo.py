@@ -87,7 +87,7 @@ def echo(r):
 				h = requests.head(u, allow_redirects=True).headers
 				break
 			if h:
-				return HttpResponse("\n".join(["%s: %s" % (k, h[k]) for k in h]), content_type=g.get('t', 'image/png'), status=r.status_code)
+				return HttpResponse("\n".join(["%s: %s" % (k, h[k]) for k in h]), content_type=g.get('t', 'image/png'))
 			return HttpResponse('No headers', content_type="image/png")
 		p = g.get('l')
 		if p:
