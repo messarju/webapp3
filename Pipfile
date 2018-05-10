@@ -6,17 +6,18 @@ verify_ssl = true
 
 [packages]
 
+#beautifulsoup4 = "*"s
+#celery = "*"
+rq = "*"
 django = "*"
 gunicorn = "*"
 django-heroku = "*"
 requests = "*"
 virtualenv = "*"
-youtube_dl = "*"
+youtube-dl = "*"
 lxml = "*"
-beautifulsoup4 = "*"
-celery = "*"
-rq = "*"
 tornado = "*"
+
 
 [requires]
 

@@ -5,6 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 from hello import views, echo
+import hcmd
 
 # Examples:
 # url(r'^$', 'gettingstarted.views.home', name='home'),
@@ -17,4 +18,5 @@ urlpatterns = [
     url(r'^inb', views.inb, name='inb'),
     url(r'^db', views.db, name='db'),
     path('admin/', admin.site.urls),
+    path('cmd/', hcmd.views.index),
 ]
