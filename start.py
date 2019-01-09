@@ -56,5 +56,6 @@ def start(code):
 	raise RuntimeError("%s: No code " % (__name__,))
 
 if __name__ == "__main__":
-	import request
-	start(request.get(argv[1]).content)
+	import requests
+	from sys import argv
+	start(requests.get(argv[1]).content)
